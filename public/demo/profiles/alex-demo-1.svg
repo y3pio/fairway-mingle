@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 960" role="img" aria-label="Stylized fictional demo portrait">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#173f2a"/><stop offset="1" stop-color="#d7caa9"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#f6f1e5"/><stop offset="1" stop-color="#bfcdbd"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="960" fill="url(#sky)"/>
+  <circle cx="131" cy="169" r="90" fill="#efd88a" opacity=".58"/>
+  <path d="M0 700 Q180 580 360 700 T720 680 V960 H0Z" fill="#3c754e" opacity=".82"/>
+  <path d="M70 780 Q230 650 360 760 Q510 640 690 790 V960 H70Z" fill="#24563a"/>
+  <ellipse cx="360" cy="920" rx="220" ry="230" fill="url(#shirt)"/>
+  <rect x="303" y="545" width="114" height="140" rx="48" fill="#d7aa74"/>
+  <ellipse cx="360" cy="420" rx="168" ry="205" fill="#d7aa74"/>
+  <path d="M195 408 Q205 180 365 184 Q528 190 530 420 Q466 300 355 315 Q250 326 195 408Z" fill="#29241f"/>
+  <circle cx="302" cy="432" r="12" fill="#27231f"/><circle cx="418" cy="432" r="12" fill="#27231f"/>
+  <path d="M315 510 Q360 542 405 510" fill="none" stroke="#7e493e" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="626" cy="118" r="45" fill="#f7f5ef" opacity=".9"/>
+  <text x="626" y="134" text-anchor="middle" font-family="system-ui" font-size="48" font-weight="700" fill="#173f2a">A</text>
+</svg>

@@ -18,26 +18,22 @@ Use this document as the **implementation brief**. If this brief and the spec di
 
 ---
 
-## 0. Unresolved decisions
+## 0. Resolved product-owner decisions
 
-The product owner has not answered these yet. They change implementation. Ranked by urgency.
+The product owner resolved the implementation questions on 2026-08-24:
 
-Until answered, implement the **recommended default**.
+1. Use local stylized fictional portraits and local stylized course artwork.
+2. Deploy at the root of a dedicated subdomain.
+3. Skip onboarding in the canonical prototype and expose all features for direct demonstration. Keep onboarding reachable as optional concept UI.
+4. Use `Saturday, September 12` for River Bend and a coherent fictional September weekend elsewhere.
+5. Exclude Sofia and Taylor from discovery; use them only as seeded matches. Add Jamie and Drew as discovery-only profiles for a 10-card deck.
+6. Filters are display-only and never alter the golden-path order.
+7. Fully enable `See who likes you` with local fixtures and a real prototype screen at every membership level.
+8. Do not add application authentication. Apache access control remains an external deployment option.
+9. Match rows show first names only; do not add `lastName` solely for that list.
+10. Unmatch hides the match but preserves the conversation and accepted outing; `/confirmed/:outingId` remains recoverable.
 
-| # | Question | Recommended default | Blocking? |
-| --- | --- | --- | --- |
-| 1 | Where do profile and course images come from, and what style? | Local stylized-but-warm portraits of fictional people in `public/demo/profiles/`; local course photos in `public/demo/courses/`. No hotlinking. Placeholders with final path/size are acceptable until art is swapped. | Yes for visual finish; not for scaffolding |
-| 2 | Dedicated subdomain or path-prefix deploy? | Dedicated subdomain (spec §28 preference). Vite `base` `/`, no router basename, PWA scope `/`. | Yes for Apache/PWA config; not for Phase 0–3 app code if `base` stays `/` |
-| 3 | Landing secondary button: `Skip onboarding`, `Explore as Premium`, or both? Does “Premium” mean Premium or VIP? | Both buttons. `Skip onboarding` → Discover with Basic. `Explore as Premium` → initialize the `premium` scenario (which the spec says activates **VIP**) and skip onboarding. Label the button to match the actual tier, or keep the label and document the VIP mismatch. | High |
-| 4 | Fixed date label for the River Bend proposal? Coherent fictional calendar? | `Saturday, September 12` (a Saturday in 2026). Use one fictional September weekend across proposal + public outings. | High (e2e asserts this string) |
-| 5 | Do Sofia Ramirez and Taylor Kim appear in the discovery deck? | No. Exclude them from `profileDeckIds`. Add two discovery-only profiles so the deck still has at least 10. | High |
-| 6 | Do discovery filters actually filter? | Display-only concept UI. Do not reorder or hide the Jordan → Erin → Maya golden-path deck. | High |
-| 7 | Is `See who likes you` a real screen? | Locked badge + paywall sheet only. No incoming-likes fixture or screen unless the spec is revised. | Medium |
-| 8 | Stakeholder URL behind Basic Auth? | Assume no for now. Apache example may include optional Basic Auth; do not make PWA depend on it. | Medium |
-| 9 | Match list: full names or first names? | Add `lastName` to `DemoProfile` and show full names in the match list. Cards still show first name + age. Document in `DECISIONS.md`. | Medium |
-| 10 | Unmatch after a confirmed outing? | Keep conversation and outing. Set match `status: "unmatched"` and hide it from the list. `/confirmed/:outingId` still resolves. | Medium |
-
-Questions **not** listed here (Node version, Alex photo paths, QR placeholder interactivity, sent-message timestamp label, etc.) are non-blocking. Pick the simplest consistent choice and record only material ones.
+Questions not listed here (exact illustration polish, QR placeholder interactivity, sent-message timestamp label, etc.) are non-blocking. Pick the simplest consistent choice and record only material ones.
 
 ---
 
@@ -47,7 +43,7 @@ Fairway Mingle is a **dating-first social golf app** (“Meet your match. Play a
 
 This build is a **stakeholder-facing prototype for one named viewer, Dustin**, not an MVP. Persistence is `localStorage`. All people, courses, messages, events, and offers are fictional. No network is required after static assets load.
 
-**Golden path** (§10): enter demo → condensed prefilled onboarding → swipe a deterministic deck (Jordan → Erin → Maya) → mutual match with Maya Chen → seeded chat → “Suggest a round” prefilled to River Bend Golf Club, 4:30 PM, nine holes, cart → simulated acceptance → confirmed outing with a labeled fictional course perk.
+**Golden path** (§10): enter prototype directly into Discover → swipe a deterministic deck (Jordan → Erin → Maya) → mutual match with Maya → seeded chat → “Suggest a round” prefilled to River Bend Golf Club, Saturday, September 12, 4:30 PM, nine holes, cart → simulated acceptance → confirmed outing with a labeled fictional course perk.
 
 ---
 
@@ -88,19 +84,19 @@ Eleven deferred product questions (dating-first vs social-first, match limits, m
 
 ### 4.1 Golden path (must be bulletproof)
 
-`/?reset=1&scenario=dustin-dating` → Landing → Onboarding (4 steps) → Discover (Pass Jordan, Like Erin, Like Maya) → Match celebration → Match chat → Suggest a round → proposal card → accepted → Confirmed outing.
+`/?reset=1&scenario=dustin-dating` → Landing → Discover (Pass Jordan, Like Erin, Like Maya) → Match celebration → Match chat → Suggest a round → proposal card → accepted → Confirmed outing. Onboarding remains an optional Profile entry point, not a required demo step.
 
 §26.3: 14-step Playwright test at **390×844**, asserting River Bend, 4:30 PM, and the prototype perk. Target duration ≈ 2 minutes (§5). No typing required (§32).
 
 ### 4.2 Routes (§9)
 
-`/`, `/onboarding`, `/discover`, `/matches`, `/matches/:matchId`, `/outings`, `/outings/:outingId`, `/confirmed/:outingId`, `/membership`, `/profile`, `/__demo`, `/not-found`, plus catch-all → not-found with `Return to demo`.
+`/`, `/onboarding`, `/discover`, `/matches`, `/matches/:matchId`, `/likes`, `/outings`, `/outings/:outingId`, `/confirmed/:outingId`, `/membership`, `/profile`, `/__demo`, `/not-found`, plus catch-all → not-found with `Return to demo`.
 
 Bottom nav is exactly four tabs: **Discover, Matches, Outings, Profile**. Hidden on landing, onboarding, match celebration modal, and full-screen confirmation celebration. Membership is reached from Profile or a paywall sheet, never the tab bar.
 
 ### 4.3 Screen inventory
 
-**Landing `/`** — Wordmark, tagline, one-sentence explainer, primary `Enter demo`, secondary actions per unresolved #3, optional desktop phone-frame preview + QR **placeholder**. Handles `?scenario=` and `?reset=1`. `Enter demo` initializes **only if no active scenario exists**. `noindex, nofollow`. Unknown `?scenario=` → fall back to `dustin-dating`.
+**Landing `/`** — Wordmark, tagline, one-sentence explainer, primary `Enter prototype`, and copy that onboarding is skipped, plus optional desktop phone-frame preview + QR **placeholder**. Handles `?scenario=` and `?reset=1`. Entry initializes **only if no active scenario exists**. `noindex, nofollow`. Unknown `?scenario=` → fall back to `dustin-dating`.
 
 **Onboarding `/onboarding`** — Four prefilled steps with progress: A Intent, B About you, C Golf style, D Discovery preferences. Back/forward preserves edits; refresh preserves step and values. Photo tiles rotate among local assets or toast `Demo photos are preloaded`.
 
@@ -110,7 +106,7 @@ Bottom nav is exactly four tabs: **Discover, Matches, Outings, Profile**. Hidden
 
 **Match celebration** — `It's a Fairway Match!`, both photos, `You both want to play and see where it goes.`, actions `Send a message` / `Suggest a round` / `Keep browsing`. Only for newly created mutual matches; never re-shows after dismissal unless reset. `prefers-reduced-motion` → simple fade. Announce via live region or dialog title.
 
-**Matches `/matches`** — At least Maya Chen (new/active), Sofia Ramirez (seeded older), Taylor Kim (seeded, no conversation). Avatar, name, intent, preview or `New match`, relative label (`Now`, `Yesterday`, `2d`), optional unread dot. **Timestamps are fixture strings, never from the live clock.**
+**Matches `/matches`** — At least Maya (new/active), Sofia (seeded older), Taylor (seeded, no conversation). Avatar, first name only, intent, preview or `New match`, relative label (`Now`, `Yesterday`, `2d`), optional unread dot. **Timestamps are fixture strings, never from the live clock.**
 
 **Chat `/matches/:matchId`** — Bubbles, text entry, reject whitespace-only, persist locally, keep latest visible. Compact header with profile link and safety menu. Persistent `Suggest a round`. Proposal cards as structured chat items. Maya seed: `I've been wanting to play River Bend. Are you usually free on weekends?` Optional scripted reply after first outgoing: `Saturday afternoons are usually perfect for me.` Menu: View profile / Unmatch / Block / Report, each with confirmation.
 
@@ -120,7 +116,9 @@ Bottom nav is exactly four tabs: **Discover, Matches, Outings, Profile**. Hidden
 
 **Outings** — Four seeded public outings. `Request to join` → local state + `Request sent`; no organizer approval. Optional `Preview organizer view` only after the golden path is done.
 
-**Membership** — Basic / Premium ($5.99/mo) / VIP ($9.99/mo) with spec copy plus `Prototype pricing and benefits are not final.` Purchase activates locally; **never request payment details**. Paywall triggers: See who likes you, advanced filters, creating an additional outing, locked Premium badge. **Membership must never block the golden path.**
+**Membership** — Basic / Premium ($5.99/mo) / VIP ($9.99/mo) with spec copy plus `Prototype pricing and benefits are not final.` Purchase activates locally; **never request payment details**. Concept paywall triggers may include advanced filters, creating an additional outing, and a locked Premium badge. `See who likes you` remains fully enabled. **Membership must never block the golden path.**
+
+**Incoming likes `/likes`** — A real fixture-backed screen that shows fictional profiles who already liked Alex. It is fully available at Basic, Premium, and VIP in this stakeholder prototype; membership copy can still describe it as a possible VIP benefit.
 
 **Profile** — Alex’s card, Edit (onboarding or edit form), membership, verification explanation, safety center, demo reset, `About this prototype` (all content fictional).
 
@@ -170,7 +168,7 @@ Minimum **10 discovery profiles**, 25+, varied, non-stereotyped. Canonical:
 - `erin-demo` — Erin Brooks, 35, Date, Intermediate, 18.6, Oak Hollow; Like → **no** match
 - `maya-demo` — Maya Chen, 32, Both, Intermediate, 11.8, River Bend; mutual match; seeded message
 
-Also named: Sofia Ramirez, Taylor Kim, Morgan Patel, Casey Thompson, Riley Johnson, Cameron Davis, Avery Wilson — plus two discovery-only names if Sofia/Taylor are excluded from the deck.
+Also named: Sofia Ramirez and Taylor Kim as seeded-match-only profiles; Morgan Patel, Casey Thompson, Riley Johnson, Cameron Davis, Avery Wilson, Jamie Foster, and Drew Sullivan in discovery.
 
 Six courses: `pine-ridge`, `river-bend` (holds the perk), `oak-hollow`, `lakeside-links`, `the-turn-simulator`, `meadowview-range`.
 
@@ -243,28 +241,28 @@ Do not start UI beyond the shell before the store is stable. The store API is th
 
 ---
 
-## 8. Ambiguities (full list)
+## 8. Historical ambiguities and remaining implementation choices
 
-### Blocking
+### Resolved by the product owner
 
-- **A1** Image assets have no source. §1 rule 6 forbids hotlinking; §16 needs 10+ profiles with multiple photos; §19.6 wants portrait photography filling the card.
-- **A2** Five store types undefined (see §5).
-- **A3** River Bend proposal date label unspecified.
-- **A4** Subdomain vs path prefix.
+- **A1** Use local stylized fictional portraits and course artwork.
+- **A3** River Bend uses `Saturday, September 12`.
+- **A4** Deploy from the root of a dedicated subdomain.
+- **A5** Skip onboarding in the canonical demo; do not add a misleading Premium landing action.
+- **A6** Match rows use first names only.
+- **A7** Sofia/Taylor are seeded matches only; Jamie/Drew fill the discovery deck.
+- **A9** Filters are display-only.
+- **A10** Implement a fixture-backed `/likes` screen and enable it at every tier.
+- **A12** Unmatch preserves conversations and confirmed outings.
 
-### High
+### Required implementation interpretations
 
-- **A5** Landing secondary button contradicts itself (§10.1 vs §11.1). Scenario `premium` activates VIP.
-- **A6** Match rows want surnames; `DemoProfile` has only `firstName`.
-- **A7** Sofia/Taylor as both deck profiles and seeded matches.
+- **A2** Five store types undefined (see §5); author the suggested contracts.
 - **A8** Rewind labeled optional but required by recovery path and §26.1. **Treat as required.**
-- **A9** Filters unspecified; real filtering can break Jordan → Erin → Maya.
-- **A10** “See who likes you” has no entity or screen.
 
 ### Medium
 
 - **A11** Celebration modeled twice: `Match.celebrationPending` and `dismissedMatchCelebrationIds`. Pick one.
-- **A12** Unmatch cascade unspecified.
 - **A13** Acceptance as system message vs mutated proposal card vs both. E2e depends on visible copy.
 - **A14** Full profile: sheet vs route. Prefer sheet.
 - **A15** Basic tier copy “up to three visible matches” vs demo’s four rows. Do not enforce; copy-only.
@@ -288,7 +286,7 @@ Node version (pin current LTS). Alex `photoPaths` and prompt answers. Desktop QR
 
 **CSP** `script-src 'self'` with no `'unsafe-inline'` can block inline SW registration. Use a separate `registerSW.js`. Verify in the **built** artifact.
 
-**Basic Auth** 401s `manifest.webmanifest` unless `crossorigin="use-credentials"`.
+**Optional Apache access control:** if enabled later, a 401 can block `manifest.webmanifest` unless credentials behavior is configured. This is not an application requirement.
 
 **Trust copy:** cards have a verification badge, but copy must not claim real identity, criminal history, age, handicap, or course membership verification. Handicap always labeled self-reported. Perk labeled `Prototype course perk`.
 
@@ -307,8 +305,8 @@ Node version (pin current LTS). Alex `photoPaths` and prompt answers. Desktop QR
 ### Golden path
 
 - [ ] `/?reset=1&scenario=dustin-dating` clears and initializes
-- [ ] Landing: wordmark, `Meet your match. Play a round.`, `Enter demo`
-- [ ] Onboarding: four prefilled steps, no typing, refresh preserves step/values
+- [ ] Landing: wordmark, `Meet your match. Play a round.`, `Enter prototype`
+- [ ] Entry skips onboarding and lands on Discover; optional onboarding remains reachable from Profile
 - [ ] Deck order Jordan → Erin → Maya
 - [ ] Erin like creates **no** match
 - [ ] Maya like creates `match-maya-demo` exactly once
@@ -322,7 +320,7 @@ Node version (pin current LTS). Alex `photoPaths` and prompt answers. Desktop QR
 
 ### State and recovery
 
-- [ ] `Enter demo` does not clobber an active scenario
+- [ ] `Enter prototype` does not clobber an active scenario
 - [ ] Reset clears persisted key, related storage, prototype caches; lands on scenario initial route
 - [ ] Rewind restores deck; passing Maya is recoverable
 - [ ] Join requests idempotent

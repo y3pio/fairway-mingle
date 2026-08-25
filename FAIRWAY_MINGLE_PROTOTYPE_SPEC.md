@@ -1,6 +1,6 @@
 # Fairway Mingle Prototype Product and Technical Specification
 
-**Document status:** Build-ready draft 1  
+**Document status:** Build-ready draft 2 (product-owner decisions incorporated)  
 **Audience:** Personal Cursor coding agent and repository contributors  
 **Product owner:** Prototype sponsor / Dustin  
 **Implementation owner:** Repository maintainer  
@@ -31,7 +31,7 @@ Follow these rules:
 
 The first deliverable should be a vertical slice that supports:
 
-> Enter demo -> view profile cards -> create a mutual match -> open chat -> propose a golf outing -> see the outing confirmed.
+> Enter prototype -> view profile cards -> create a mutual match -> open chat -> propose a golf outing -> see the outing confirmed.
 
 Everything else is secondary.
 
@@ -68,7 +68,7 @@ The prototype is a product demonstration, not a market-ready MVP. It may use smo
 The prototype must demonstrate:
 
 - A clear dating-and-golf value proposition
-- A condensed onboarding experience
+- An optional condensed, prefilled onboarding/edit-profile experience
 - Intent selection: Date, Play, or Both
 - Golf-specific profile information
 - A polished swipe/card discovery experience
@@ -141,6 +141,19 @@ These items may be represented through UI or success messages when useful, but t
 - The application must work with touch, mouse, and keyboard input.
 - The application should remain usable when swipe gestures are awkward; explicit Like and Pass buttons are required.
 - The demo must not depend on timing-sensitive scripted events. Any delayed simulated reply must have a fallback that lets the user continue.
+
+### 5.1 Resolved prototype decisions
+
+- Use local stylized portraits for fictional people and local stylized course artwork. Do not use stock photos or hotlinked assets.
+- Deploy from the root of a dedicated subdomain. Use Vite base `/`, router basename `/`, and PWA scope `/`.
+- Skip onboarding in the canonical stakeholder demo. The prefilled onboarding concept remains reachable from Profile, but all prototype features are available for direct exploration.
+- Use `Saturday, September 12` as the fixed River Bend proposal date.
+- Exclude Sofia and Taylor from discovery because they are seeded matches. Add Jamie and Drew as discovery-only profiles so the deck contains 10 profiles.
+- Discovery filters are display-only and must not alter the deterministic deck.
+- `See who likes you` is a fully enabled prototype screen backed by local incoming-like fixtures. It is not paywalled in the stakeholder demo.
+- The application has no internal authentication. Apache-level access control may be added during deployment without changing application behavior.
+- Match lists show first names only.
+- Unmatching hides the match while retaining its conversation and any accepted outing. A persisted `/confirmed/:outingId` route remains recoverable.
 
 ---
 
@@ -270,22 +283,22 @@ Do not show bottom navigation on the landing page, onboarding, match celebration
 
 The golden path is the highest-priority implementation and must be covered by an end-to-end test.
 
-### Step 1: Enter demo
+### Step 1: Enter prototype
 
 The user visits `/` and sees:
 
 - Fairway Mingle logo or wordmark
 - Tagline: `Meet your match. Play a round.`
 - Brief one-sentence explanation
-- Primary button: `Enter demo`
-- Secondary button: `Explore as Premium` or `Skip onboarding`
+- Primary button: `Enter prototype`
+- Supporting copy that onboarding is skipped for this stakeholder demo
 - On desktop, a phone-frame preview and QR-code placeholder area may be shown
 
-`Enter demo` initializes the default `dustin-dating` scenario and sends the user to onboarding.
+`Enter prototype` initializes the default `dustin-dating` scenario and sends the user directly to Discover.
 
-### Step 2: Condensed onboarding
+### Step 2: Optional condensed onboarding concept
 
-The user taps through four prefilled steps:
+The canonical demo skips this step. The concept remains reachable from Profile and lets the user tap through four prefilled steps:
 
 1. Intent
 2. About you
@@ -341,7 +354,7 @@ The proposal flow is a sheet, drawer, dialog, or route optimized for mobile.
 Prefilled values:
 
 - Venue: River Bend Golf Club
-- Date: Next suitable Saturday represented as a fixed demo date label, not calculated from the system clock
+- Date: `Saturday, September 12`
 - Time: 4:30 PM
 - Activity: Nine holes
 - Transportation: Cart
@@ -386,8 +399,8 @@ This screen is the endpoint of the primary demonstration.
 Required behavior:
 
 - Show a clear mobile-first hero.
-- Provide `Enter demo` and `Skip onboarding` actions.
-- `Enter demo` initializes the scenario only if no active scenario exists.
+- Provide one primary `Enter prototype` action that enters the initialized scenario without onboarding.
+- `Enter prototype` initializes the scenario only if no active scenario exists.
 - A `reset=1` query parameter must clear demo state before initializing.
 - A `scenario` query parameter may select a named scenario.
 - Add `noindex, nofollow` metadata.
@@ -479,8 +492,8 @@ Required controls:
 - Pass
 - View profile
 - Like
-- Optional Rewind after one action
-- Optional Filters sheet
+- Rewind after one action
+- Optional display-only Filters sheet
 
 Gesture behavior:
 
@@ -504,6 +517,7 @@ Deterministic behavior:
 - Liking `maya-demo` creates `match-maya-demo` exactly once.
 - Repeated action or reload must not duplicate the match.
 - Passing Maya can be undone with Rewind or demo controls.
+- Filters never reorder or hide profiles in the deterministic deck.
 - When the stack is exhausted, show an empty state with `Reset deck` and `Explore outings`.
 
 ### 11.4 Full profile view
@@ -545,7 +559,7 @@ Show at least three rows:
 Each row shows:
 
 - Avatar
-- Name
+- First name only
 - Intent badge
 - Message preview or `New match`
 - Relative demo timestamp such as `Now`, `Yesterday`, or `2d`
@@ -584,6 +598,8 @@ The three-dot safety menu should include:
 - Report
 
 Each action is simulated and uses a confirmation dialog.
+
+Unmatching sets the match status to `unmatched` and hides it from the list. Keep the conversation and accepted outings in persisted state so a valid `/confirmed/:outingId` route remains recoverable.
 
 ### 11.8 Outing proposal
 
@@ -705,12 +721,13 @@ Important implementation rule:
 
 The golden path must not enforce restrictions that prevent Dustin from reaching the confirmed-outing screen. Membership restrictions are represented as concept UI only.
 
-Paywall triggers may include:
+Paywall concept triggers may include:
 
-- Opening `See who likes you`
 - Selecting an advanced filter
 - Trying to create an additional outing
 - Tapping a locked Premium badge
+
+`See who likes you` is fully enabled for this prototype at every membership level and uses local fixture data.
 
 Tapping a purchase button should activate the selected plan locally and show a success screen. Never request payment details.
 
@@ -816,7 +833,7 @@ interface DemoScenario {
 
 ### `dustin-dating`
 
-- Starts at onboarding
+- Starts at `/discover`; onboarding is already complete
 - Basic membership
 - Profile order: Jordan, Erin, Maya, then additional profiles
 - Maya creates a mutual match
@@ -1107,13 +1124,15 @@ Create at least 10 fictional discovery profiles. The first three must be stable:
 
 Additional suggested profiles:
 
-- Sofia Ramirez
-- Taylor Kim
+- Sofia Ramirez (seeded match only; exclude from discovery)
+- Taylor Kim (seeded match only; exclude from discovery)
 - Morgan Patel
 - Casey Thompson
 - Riley Johnson
 - Cameron Davis
 - Avery Wilson
+- Jamie Foster (discovery only)
+- Drew Sullivan (discovery only)
 
 Use varied experience levels, schedules, golf preferences, backgrounds, and intentions. Avoid stereotypes. All profiles must be adults aged 25 or older in the demo fixture set.
 
@@ -1659,19 +1678,18 @@ Recommended tests:
 Create one Playwright test for the golden path at a mobile viewport such as 390 x 844:
 
 1. Open `/?reset=1&scenario=dustin-dating`.
-2. Enter demo.
-3. Complete onboarding.
-4. Pass Jordan.
-5. Like Erin.
-6. Like Maya.
-7. Confirm match celebration appears.
-8. Open chat.
-9. Send a message.
-10. Open Suggest a round.
-11. Submit the prefilled proposal.
-12. Confirm accepted state.
-13. Open confirmed outing.
-14. Assert River Bend, 4:30 PM, and the prototype perk are visible.
+2. Enter the prototype and confirm it opens Discover without onboarding.
+3. Pass Jordan.
+4. Like Erin.
+5. Like Maya.
+6. Confirm match celebration appears.
+7. Open chat.
+8. Send a message.
+9. Open Suggest a round.
+10. Submit the prefilled proposal.
+11. Confirm accepted state.
+12. Open confirmed outing.
+13. Assert River Bend, Saturday, September 12, 4:30 PM, and the prototype perk are visible.
 
 Add a desktop smoke test that verifies the phone frame and navigation render without overflow.
 
@@ -1688,7 +1706,7 @@ Before stakeholder delivery, manually test:
 - Reduced-motion mode
 - Add-to-home-screen behavior where practical
 - Reload on every primary route
-- Basic Auth with all static assets and service worker files
+- Apache access control with all static assets and service worker files, only if enabled for deployment
 - Reset after PWA installation
 
 ### 26.5 Quality scripts
@@ -1850,7 +1868,7 @@ Do not commit the password file or password to the repository.
 
 ## 29. Deployment Workflow
 
-The simplest manual workflow is acceptable:
+The simplest manual workflow is acceptable. Deploy at the root of a dedicated subdomain:
 
 ```bash
 npm ci
@@ -1916,16 +1934,15 @@ Include:
 Include a concise presenter walkthrough:
 
 1. Reset to `dustin-dating`.
-2. Enter demo.
-3. Show intent and golf preferences.
-4. Pass Jordan.
-5. Like Erin.
-6. Like Maya.
-7. Open match chat.
-8. Suggest River Bend.
-9. Show confirmation and perk.
-10. Briefly show Outings and Membership.
-11. Reset before handing the device to Dustin.
+2. Enter the prototype directly into Discover.
+3. Pass Jordan.
+4. Like Erin.
+5. Like Maya.
+6. Open match chat.
+7. Suggest River Bend.
+8. Show confirmation and perk.
+9. Briefly show incoming likes, Outings, Membership, and Profile.
+10. Reset before handing the device to Dustin.
 
 ### `docs/DECISIONS.md`
 
@@ -1975,7 +1992,7 @@ Record material deviations from this specification, package choices that may be 
 - [ ] Add deterministic Maya match logic.
 - [ ] Add unit tests for swipe and match state.
 
-**Exit criterion:** A user can complete onboarding and reliably create the Maya match.
+**Exit criterion:** A user can enter Discover without onboarding and reliably create the Maya match; optional onboarding remains directly reachable.
 
 ### Phase 3: Match, chat, and outing proposal
 
