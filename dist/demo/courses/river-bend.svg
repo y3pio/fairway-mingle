@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="Stylized fictional golf venue">
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#f0c986"/><stop offset=".65" stop-color="#d8e7d1"/></linearGradient></defs>
+  <rect width="1200" height="720" fill="url(#sky)"/>
+  <circle cx="980" cy="130" r="76" fill="#fff4c6"/>
+  <path d="M0 390 Q220 260 430 400 T840 360 T1200 380 V720 H0Z" fill="#c9ba82"/>
+  <path d="M0 500 Q300 350 560 510 T1200 470 V720 H0Z" fill="#226b68"/>
+  <path d="M530 720 Q570 540 730 455 Q780 420 835 385" fill="none" stroke="#e8d9ad" stroke-width="86" opacity=".9"/>
+  <path d="M830 390 V235" stroke="#f7f5ef" stroke-width="9"/><path d="M836 240 L945 272 L836 300Z" fill="#d3a64b"/>
+  <ellipse cx="830" cy="392" rx="58" ry="18" fill="#173f2a" opacity=".45"/>
+</svg>
