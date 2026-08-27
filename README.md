@@ -1,4 +1,4 @@
-# Fairway Mingle
+# Fairway Friends
 
 A mobile-first, fictional prototype for golf-centered dating and social outings.
 
